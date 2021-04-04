@@ -46,10 +46,20 @@ class Burgers:
     ipos[self.NX-1] = 0
     ineg[0] = self.NX-1
 
+
     # Numerical solution
     for n in range(0,self.NT-1):
         for i in range(0,self.NX):
             dw = self.Noise(DX)
+            '''
+            print("========")
+            print("1: {}".format(self.Noise(DX)))
+            print("2: {}".format((self.u[i,n]-self.u[i,n]*(DT/DX)*(self.u[i,n]-self.u[int(ineg[i]),n]))))
+            print("3: {}".format((NU*(DT/DX**2)*(self.u[int(ipos[i]),n]-2*self.u[i,n]+self.u[int(ineg[i]),n]))))
+            print("4: {}".format((EPS/DX) * dw))
+            print("5: {}".format(f_control[i]))
+            print("========")
+            '''
             self.u[i,n+1] = (self.u[i,n]-self.u[i,n]*(DT/DX)*(self.u[i,n]-self.u[int(ineg[i]),n])+ NU*(DT/DX**2)*(self.u[int(ipos[i]),n]-2*self.u[i,n]+self.u[int(ineg[i]),n]) + (EPS/DX) * dw) + f_control[i] * DT
     
     return self.u
