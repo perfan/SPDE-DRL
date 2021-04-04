@@ -5,7 +5,7 @@ from SPDEs import Burgers
 from math import pi as PI
 
 
-NT = 301
+NT = 3001
 T_START = 0
 T_END = 1
 NX = 151
@@ -20,8 +20,9 @@ burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
 USTAR = np.full(NX, 0, dtype = np.float32)
 FMAX = 20
-f_control = np.full(NX, 2, dtype = np.float32)
+f_control = np.full(NX, 10, dtype = np.float32) 
 
+# f_control = np.concatenate((np.full(50, 2, dtype = np.float32), np.full(50, 0.5, dtype = np.float32), np.full(51, 2, dtype = np.float32)), axis=0)
 
 env = SpdeEnv(burgers, UMAX, FMAX, NU, EPS, USTAR)
 env.reset()
@@ -41,12 +42,12 @@ plt.xticks(fontsize=10)
 plt.yticks(fontsize=10)  
 
 plt.plot(burgers.x, burgers.u[:,0], label="u_initial", color="black", lw=2)
-plt.plot(burgers.x, burgers.u[:,100], label="u_t1", color="red", lw=2)
-plt.plot(burgers.x, burgers.u[:,200], label="u_t2", color="green", lw=2)
+plt.plot(burgers.x, burgers.u[:,500], label="u_t1", color="red", lw=2)
+plt.plot(burgers.x, burgers.u[:,800], label="u_t2", color="green", lw=2)
 plt.plot(burgers.x, burgers.u[:,-1], label="u_end", color="blue", lw=2)
 
 plt.xlim(0, XMAX)
-plt.ylim(0, 7.5)
+# plt.ylim(0, 7.5)
 plt.legend(prop={'size': 10})
 plt.minorticks_on()    
 plt.show()

@@ -46,13 +46,14 @@ class SpdeEnv(gym.Env):
     def step(self, f, t_start, t_end):
         u = self.state 
 
-        # f = np.clip(f, -self.f_max, self.f_max)
+        f = np.clip(f, -self.f_max, self.f_max)
         
         # costs = np.sum((u[:, -1] - self.u_star)**2)
         # costs = np.sum((u[:, -1] - self.u_star)**2)
-        
         du = utils.differentiate(u[:,-1], self.x_max, self.n_x)
-        costs = np.sum((du)**2)
+        
+        u_avg  = np.average(u[:,-1])
+        costs = np.sum((u[:, -1] -  u_avg)**2)
 
         self.state = self.burgers.convection_diffusion(t_start, t_end, self.nu, self.eps, u, f)
         
