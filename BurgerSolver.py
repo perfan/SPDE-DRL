@@ -20,12 +20,12 @@ burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
 USTAR = np.full(NX, 0, dtype = np.float32)
 FMAX = 20
-f_control = np.full(NX, 0, dtype = np.float32)
+f_control = np.full(NX, 2, dtype = np.float32)
 
 
 env = SpdeEnv(burgers, UMAX, FMAX, NU, EPS, USTAR)
 env.reset()
-u, reward, done, _ = env.step(f_control, T_START, T_END)
+u, du, reward, done, _ = env.step(f_control, T_START, T_END)
 
 print(reward)
 
@@ -41,9 +41,9 @@ plt.xticks(fontsize=10)
 plt.yticks(fontsize=10)  
 
 plt.plot(burgers.x, burgers.u[:,0], label="u_initial", color="black", lw=2)
-# plt.plot(burgers.x, burgers.u[:,100], label="u_t1", color="red", lw=2)
-# plt.plot(burgers.x, burgers.u[:,200], label="u_t2", color="green", lw=2)
-plt.plot(burgers.x, burgers.u[:,1], label="u_end", color="blue", lw=2)
+plt.plot(burgers.x, burgers.u[:,100], label="u_t1", color="red", lw=2)
+plt.plot(burgers.x, burgers.u[:,200], label="u_t2", color="green", lw=2)
+plt.plot(burgers.x, burgers.u[:,-1], label="u_end", color="blue", lw=2)
 
 plt.xlim(0, XMAX)
 plt.ylim(0, 7.5)

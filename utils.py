@@ -3,6 +3,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def differentiate(u, XMAX, NX):
+    du = np.zeros(np.size(u))
+    DX = XMAX/(NX-1) 
+
+    du[0] = (u[1]-u[0])/DX
+    for i in range(1, np.size(u)-1):
+        du[i] = (u[i-1]-2*u[i]+u[i+1])/(2*DX)
+    du[np.size(u)-1] = (u[np.size(u)-1]-u[np.size(u)-2])/DX
+
+    return du
+
 def plotLearning(scores, filename, x=None, window=5):   
     N = len(scores)
     running_avg = np.empty(N)

@@ -3,6 +3,7 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 from os import path
+import utils
 
 
 class SpdeEnv(gym.Env):
@@ -16,6 +17,7 @@ class SpdeEnv(gym.Env):
         self.u_max = u_max
         self.f_max = f_max
         self.n_x = self.burgers.NX
+        self.x_max  = self.burgers.XMAX
         self.nu = nu
         self.eps = eps
         self.u_star = u_star 
@@ -42,15 +44,22 @@ class SpdeEnv(gym.Env):
         return [seed]
 
     def step(self, f, t_start, t_end):
-        u = self.state  # th := theta
+        u = self.state 
 
         # f = np.clip(f, -self.f_max, self.f_max)
-        costs = np.sum((u[:, -1] - self.u_star)**2)
+        
+        # costs = np.sum((u[:, -1] - self.u_star)**2)
+        # costs = np.sum((u[:, -1] - self.u_star)**2)
+        
+        du = utils.differentiate(u[:,-1], self.x_max, self.n_x)
+        costs = np.sum((du)**2)
 
         self.state = self.burgers.convection_diffusion(t_start, t_end, self.nu, self.eps, u, f)
-        return self.state[:, -1], -costs, False, {}
+        
+
+        return self.state[:, -1], du, -costs, False, {}
 
     def reset(self):
         self.state = self.burgers.InitialCondition(self.nu) 
         self.last_u = None
-        return self.state [:, 0]
+        return self.state[:, 0]

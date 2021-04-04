@@ -19,8 +19,8 @@ seed  = 0
 burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
 USTAR = np.full(NX, 4.0, dtype = np.float32)
-FMAX = 1
-f_control = np.full(NX, 2.0, dtype = np.float32)
+FMAX = 10
+f_control = np.full(NX, 0.0, dtype = np.float32)
 
 env = SpdeEnv(burgers, UMAX, FMAX, NU, EPS, USTAR)
 chkpt_dir = 'experiment_out'
@@ -43,7 +43,7 @@ for j in range(num_episodes):
         T_START = i / 10
         T_END = (i + 1) / 10
         act = agent.choose_action(obs)
-        new_state, reward, done, info = env.step(act, T_START, T_END)
+        new_state, derivaties, reward, done, info = env.step(act, T_START, T_END)
       
         agent.remember(obs, act, reward, new_state, int(done))
         agent.learn()
