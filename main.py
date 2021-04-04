@@ -6,6 +6,10 @@ from math import pi as PI
 from utils import make_dir
 from utils import plotLearning
 from model import Agent
+import os
+import time
+from datetime import datetime
+
 
 NT = 601
 T_START = 0
@@ -30,6 +34,11 @@ agent = Agent(alpha=0.1, beta=1, input_dims=[NX], tau=0.1, env=env,
 
 np.random.seed(seed)
 
+make_dir('logs')
+now = datetime.now()
+current_time = now.strftime("%H:%M:%S")
+log_dir_name = "./logs/{}".format(current_time)
+os.mkdir(log_dir_name)
 
 score_history = []
 num_episodes = 100
@@ -38,6 +47,10 @@ for j in range(num_episodes):
     obs = env.reset()
     done = False
     score = 0
+
+    now = datetime.now()
+    iter_log_dir_name = "{}/{}".format(log_dir_name, j)
+    os.mkdir(iter_log_dir_name)
     for i in range(episode_length):
         T_START = i
         T_END = (i + 1)
@@ -45,6 +58,11 @@ for j in range(num_episodes):
         # if i % 10 == 0:
         #     print(act)
         idx = np.argmax(obs)
+
+        plt.plot(act)
+        plt.savefig("{}/{}-act.png".format(iter_log_dir_name, i))
+        plt.close()
+
         print("-----")
         print("1: {}".format(act[idx]))
         print("2: {}".format(np.average(act)))
