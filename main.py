@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 
-NT = 601
+NT = 301
 T_START = 0
 T_END = 1
 NX = 151
@@ -20,18 +20,19 @@ NU = 0.01
 EPS = 0.01
 seed  = 0
 lambda1 = 0.2
+theta_2_scale = 1
 
 burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
 USTAR = np.full(NX, 4.0, dtype = np.float32)
-THETAHIGH = np.array([0.02, 3, 1, 1], dtype = np.float32)
+THETAHIGH = np.array([1, 150, 1, 1], dtype = np.float32)
 THETASIZE = 4
 
 env = SpdeEnv(burgers, UMAX, THETAHIGH, NU, EPS, USTAR, THETASIZE, lambda1)
 chkpt_dir = 'experiment_out'
 make_dir(chkpt_dir)
 
-agent = Agent(alpha=0.001, beta=0.01, input_dims=[NX], tau=0.1, env=env,
+agent = Agent(alpha=0.000025, beta=0.00025, input_dims=[NX], tau=0.1, env=env,
               batch_size=64,  layer1_size=400, layer2_size=300, n_actions= THETASIZE, chkpt_dir=chkpt_dir)
 
 np.random.seed(seed)
@@ -44,7 +45,7 @@ os.mkdir(log_dir_name)
 
 score_history = []
 num_episodes = 100
-episode_length = 10
+episode_length = 100
 for j in range(num_episodes):
     obs = env.reset()
     done = False
@@ -54,9 +55,10 @@ for j in range(num_episodes):
     iter_log_dir_name = "{}/{}".format(log_dir_name, j)
     os.mkdir(iter_log_dir_name)
     for i in range(episode_length):
-        T_START = i
-        T_END = (i + 1)
+        T_START = i / 50
+        T_END = (i + 1) / 50
         act = agent.choose_action(obs).astype('double')
+        act[1] *= theta_2_scale 
         # if i % 10 == 0:
         #     print(act)
         idx = np.argmax(obs)
