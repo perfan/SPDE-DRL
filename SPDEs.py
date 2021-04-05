@@ -56,7 +56,7 @@ class Burgers:
             print("1: {}".format(self.Noise(DX)))
             print("2: {}".format((self.u[i,n]-self.u[i,n]*(DT/DX)*(self.u[i,n]-self.u[int(ineg[i]),n]))))
             print("3: {}".format((NU*(DT/DX**2)*(self.u[int(ipos[i]),n]-2*self.u[i,n]+self.u[int(ineg[i]),n]))))
-            print("4: {}".format((EPS/DX) * dw))
+            print("4: {}".format(EPS))
             print("5: {}".format(f_control[i]))
             print("========")
             '''
