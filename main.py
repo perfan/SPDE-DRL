@@ -19,18 +19,20 @@ XMAX = 2.0*PI
 NU = 0.01
 EPS = 0.01
 seed  = 0
+lambda1 = 0.2
 
 burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
 USTAR = np.full(NX, 4.0, dtype = np.float32)
-FMAX = 20
+THETAHIGH = np.array([0.02, 3, 1, 1], dtype = np.float32)
+THETASIZE = 4
 
-env = SpdeEnv(burgers, UMAX, FMAX, NU, EPS, USTAR)
+env = SpdeEnv(burgers, UMAX, THETAHIGH, NU, EPS, USTAR, THETASIZE, lambda1)
 chkpt_dir = 'experiment_out'
 make_dir(chkpt_dir)
 
-agent = Agent(alpha=0.1, beta=1, input_dims=[NX], tau=0.1, env=env,
-              batch_size=64,  layer1_size=400, layer2_size=300, n_actions=NX, chkpt_dir=chkpt_dir)
+agent = Agent(alpha=0.001, beta=0.01, input_dims=[NX], tau=0.1, env=env,
+              batch_size=64,  layer1_size=400, layer2_size=300, n_actions= THETASIZE, chkpt_dir=chkpt_dir)
 
 np.random.seed(seed)
 
@@ -59,13 +61,13 @@ for j in range(num_episodes):
         #     print(act)
         idx = np.argmax(obs)
 
-        plt.plot(act)
+        plt.plot(env.function_theta(act))
         plt.savefig("{}/{}-act.png".format(iter_log_dir_name, i))
         plt.close()
 
-        print("-----")
-        print("1: {}".format(act[idx]))
-        print("2: {}".format(np.average(act)))
+        # print("-----")
+        # print("1: {}".format(act[idx]))
+        # print("2: {}".format(np.average(act)))
         new_state, derivaties, reward, done, info = env.step(act, T_START, T_END)
       
 
