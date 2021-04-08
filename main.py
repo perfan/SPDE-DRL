@@ -11,13 +11,13 @@ import time
 from datetime import datetime
 
 
-NT = 301
+NT = 2
 T_START = 0
-T_END = 1
+T_END = 0.5
 NX = 151
 XMAX = 2.0*PI
 NU = 0.01
-EPS = 0.01
+EPS = 0.00 #0.01
 seed  = 0
 lambda1 = 0.2
 theta_2_scale = 1
@@ -46,7 +46,8 @@ os.mkdir(log_dir_name)
 
 score_history = []
 num_episodes = 100
-episode_length = 10
+episode_length = 601
+timeStep = (T_END-T_START)/(episode_length-1)
 for j in range(num_episodes):
     obs = env.reset()
     done = False
@@ -56,24 +57,28 @@ for j in range(num_episodes):
     iter_log_dir_name = "{}/{}".format(log_dir_name, j)
     os.mkdir(iter_log_dir_name)
     for i in range(episode_length):
-        T_START = i 
-        T_END = (i + 1) 
+        t_init = i * timeStep
+        t_final = (i + 1) * timeStep
+
         act = agent.choose_action(obs).astype('double')
         #act[1] *= theta_2_scale 
-        # if i % 10 == 0:
-        #     print(act)
         idx = np.argmax(obs)
+        
+        if i%100 == 0 :
+            plt.plot(act)
+            plt.savefig("{}/{}-act.png".format(iter_log_dir_name, i))
+            plt.close()
 
-        #plt.plot(env.function_theta(act))
-        plt.plot(act)
-        plt.savefig("{}/{}-act.png".format(iter_log_dir_name, i))
-        plt.close()
+            plt.plot(obs)
+            plt.savefig("{}/{}-obs.png".format(iter_log_dir_name, i))
+            plt.close()
 
-        # print("-----")
-        # print("1: {}".format(act[idx]))
-        # print("2: {}".format(np.average(act)))
-        new_state, derivaties, reward, done, info = env.step(act, T_START, T_END)
-      
+        new_state, derivaties, reward, done, info = env.step(act, t_init, t_final, obs)
+        
+        if i%100 == 0 :
+            plt.plot(new_state)
+            plt.savefig("{}/{}-newState.png".format(iter_log_dir_name, i))
+            plt.close()
 
         agent.remember(obs, act, reward, new_state, int(done))
         agent.learn()
@@ -81,10 +86,8 @@ for j in range(num_episodes):
         obs = new_state
 
         #env.render()
-    score_history.append(score / episode_length)
 
-    #if i % 25 == 0:
-    #    agent.save_models()
+    score_history.append(score / episode_length)
 
     print('episode ', j, 'score %.2f' % score,
           'trailing 100 games avg %.3f' % np.mean(score_history[-100:]))

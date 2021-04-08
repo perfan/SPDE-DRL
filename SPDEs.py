@@ -1,6 +1,7 @@
 from math import pi as PI
 from math import exp as exp
 import numpy as np
+import matplotlib.pyplot as plt 
 
 class Burgers:
 
@@ -16,12 +17,15 @@ class Burgers:
       return np.random.normal(loc=0.0, scale=np.sqrt(Dx))
 
   def InitialCondition(self, NU):
+      u_init = np.zeros((self.NX))
       for i in range(0,self.NX):
           phi = exp( -(self.x[i]**2)/(4*NU) ) + exp( -(self.x[i]-2*PI)**2 / (4*NU) )
           dphi = -(0.5*self.x[i]/NU)*exp( -(self.x[i]**2) / (4*NU) ) - (0.5*(self.x[i]-2*PI) / NU )*exp(-(self.x[i]-2*PI)**2 / (4*NU) )
-          self.u[i,0] = -2*NU*(dphi/phi) + 4
+          u_init[i] = -2*NU*(dphi/phi) + 4
       
-      return self.u
+    #   plt.plot(u_init)
+    #   plt.show()
+      return u_init
           
 
   def convection_diffusion(self, T_START, T_END, NU, EPS, prev_condition, f_control):
@@ -46,20 +50,11 @@ class Burgers:
     ipos[self.NX-1] = 0
     ineg[0] = self.NX-1
 
-
+    self.u[:,0] = prev_condition
     # Numerical solution
     for n in range(0,self.NT-1):
         for i in range(0,self.NX):
             dw = self.Noise(DX)
-            '''
-            print("========")
-            print("1: {}".format(self.Noise(DX)))
-            print("2: {}".format((self.u[i,n]-self.u[i,n]*(DT/DX)*(self.u[i,n]-self.u[int(ineg[i]),n]))))
-            print("3: {}".format((NU*(DT/DX**2)*(self.u[int(ipos[i]),n]-2*self.u[i,n]+self.u[int(ineg[i]),n]))))
-            print("4: {}".format(EPS))
-            print("5: {}".format(f_control[i]))
-            print("========")
-            '''
             self.u[i,n+1] = (self.u[i,n]-self.u[i,n]*(DT/DX)*(self.u[i,n]-self.u[int(ineg[i]),n])+ NU*(DT/DX**2)*(self.u[int(ipos[i]),n]-2*self.u[i,n]+self.u[int(ineg[i]),n]) + (EPS/DX) * dw) + f_control[i] * DT
     
     return self.u

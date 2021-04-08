@@ -5,13 +5,13 @@ from SPDEs import Burgers
 from math import pi as PI
 
 
-NT = 3001
+NT = 601
 T_START = 0
-T_END = 1
+T_END = 0.5
 NX = 151
 XMAX = 2.0*PI
 NU = 0.01
-EPS = 0.01
+EPS = 0.00 # 0.01
 seed  = 0
 
 np.random.seed(seed)
@@ -20,13 +20,13 @@ burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
 USTAR = np.full(NX, 0, dtype = np.float32)
 FMAX = 20
-f_control = np.full(NX, 10, dtype = np.float32) 
+f_control = np.full(NX, 0, dtype = np.float32) 
 
-# f_control = np.concatenate((np.full(50, 2, dtype = np.float32), np.full(50, 0.5, dtype = np.float32), np.full(51, 2, dtype = np.float32)), axis=0)
 
 env = SpdeEnv(burgers, UMAX, FMAX, NU, EPS, USTAR)
-env.reset()
-u, du, reward, done, _ = env.step(f_control, T_START, T_END)
+prev_condition = env.reset()
+
+u, du, reward, done, _ = env.step(f_control, T_START, T_END, prev_condition)
 
 print(reward)
 
@@ -41,10 +41,10 @@ plt.ylabel(r'$u$', fontsize = 10)
 plt.xticks(fontsize=10)
 plt.yticks(fontsize=10)  
 
-plt.plot(burgers.x, burgers.u[:,0], label="u_initial", color="black", lw=2)
-plt.plot(burgers.x, burgers.u[:,500], label="u_t1", color="red", lw=2)
-plt.plot(burgers.x, burgers.u[:,800], label="u_t2", color="green", lw=2)
-plt.plot(burgers.x, burgers.u[:,-1], label="u_end", color="blue", lw=2)
+plt.plot(burgers.x, env.state[:,0], label="u_initial", color="black", lw=2)
+plt.plot(burgers.x, env.state[:,200], label="u_t1", color="red", lw=2)
+plt.plot(burgers.x, env.state[:,400], label="u_t2", color="green", lw=2)
+plt.plot(burgers.x, env.state[:,-1], label="u_end", color="blue", lw=2)
 
 plt.xlim(0, XMAX)
 # plt.ylim(0, 7.5)

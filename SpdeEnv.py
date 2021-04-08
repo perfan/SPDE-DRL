@@ -55,29 +55,28 @@ class SpdeEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def step(self, f, t_start, t_end):
-        u = self.state 
+    def step(self, f, t_start, t_end, prev_condition):
 
         #theta = np.clip(theta, -self.theta_high, self.theta_high)
         f = np.clip(f, -self.f_max, self.f_max)
         #f = self.function_theta(theta)
         
+        u = self.burgers.convection_diffusion(t_start, t_end, self.nu, self.eps, prev_condition, f)
+        self.state = u
         # costs = np.sum((u[:, -1] - self.u_star)**2)
         # costs = np.sum((u[:, -1] - self.u_star)**2)
         du = utils.differentiate(u[:,-1], self.x_max, self.n_x)
         
-        regulizer = self.lambda1 * np.average((f[1:] - f[:-1])**2)
-        #u_avg  = np.average(u[:,-1])
-        #costs = np.average((u[:, -1] -  u_avg)**2)
-        # costs += regulizer
-
-        costs = np.max(u[:,-1]) - np.min(u[:,-1])
-        self.state = self.burgers.convection_diffusion(t_start, t_end, self.nu, self.eps, u, f)
-        
+        regularizer = self.lambda1 * np.average((f[1:] - f[:-1])**2)
+        u_avg  = np.average(u[:,-1])
+        costs = np.average((u[:, -1] -  u_avg)**2)
+        # costs += regularizer
+        # costs = np.max(u[:,-1]) - np.min(u[:,-1])
 
         return self.state[:, -1], du, -costs, False, {}
 
     def reset(self):
-        self.state = self.burgers.InitialCondition(self.nu) 
+        self.state = self.burgers.u 
+        self.state[:, 0] = self.burgers.InitialCondition(self.nu) 
         self.last_u = None
         return self.state[:, 0]
