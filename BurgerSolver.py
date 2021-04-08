@@ -7,7 +7,7 @@ from math import pi as PI
 
 NT = 601
 T_START = 0
-T_END = 0.5
+T_END = 2
 NX = 151
 XMAX = 2.0*PI
 NU = 0.01
@@ -19,11 +19,13 @@ np.random.seed(seed)
 burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
 USTAR = np.full(NX, 0, dtype = np.float32)
-FMAX = 20
-f_control = np.full(NX, 0, dtype = np.float32) 
+FMAX = 10
+F_HIGH = np.full((NX), FMAX, dtype = np.float32)
+
+f_control = np.random.uniform(-FMAX, FMAX, NX) 
 
 
-env = SpdeEnv(burgers, UMAX, FMAX, NU, EPS, USTAR)
+env = SpdeEnv(burgers, UMAX, FMAX, F_HIGH, NX, NU, EPS, USTAR)
 prev_condition = env.reset()
 
 u, du, reward, done, _ = env.step(f_control, T_START, T_END, prev_condition)
@@ -50,4 +52,4 @@ plt.xlim(0, XMAX)
 # plt.ylim(0, 7.5)
 plt.legend(prop={'size': 10})
 plt.minorticks_on()    
-plt.show()
+plt.savefig("just-test.png")
