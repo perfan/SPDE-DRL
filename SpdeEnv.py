@@ -18,12 +18,13 @@ class SpdeEnv(gym.Env):
 
     def function_theta(self, theta):
         a = np.arange(self.n_x, dtype = np.float32)
-        return np.tanh(theta[0] * a + theta[1]) * theta[2] + theta[3]
+        f = np.tanh(theta[0] * a + theta[1]) * theta[2] + theta[3]
+        return f - np.average(f)
     
-    def __init__(self, burgers, u_max, f_max, nu, eps, u_star, lambda1 = 0.05):
+    def __init__(self, burgers, u_max, f_max, theta_high, theta_size, nu, eps, u_star, lambda1 = 0.05):
         self.burgers = burgers
         self.u_max = u_max
-        #self.theta_high = theta_high
+        self.theta_high = theta_high
         self.f_max = f_max
         self.n_x = self.burgers.NX
         self.x_max  = self.burgers.XMAX
@@ -32,15 +33,15 @@ class SpdeEnv(gym.Env):
         self.u_star = u_star 
         self.viewer = None
         self.lambda1 = lambda1
-        #self.theta_size = theta_size
+        self.theta_size = theta_size
         
   
         u_high = np.full((self.n_x), self.u_max, dtype = np.float32)
-        f_high = np.full((self.n_x), self.f_max, dtype = np.float32)
+        # f_high = np.full((self.n_x), self.f_max, dtype = np.float32)
 
         self.action_space = spaces.Box(
-            low=-f_high,
-            high=f_high,
+            low=-theta_high,
+            high=theta_high,
             dtype=np.float32
         )
         self.observation_space = spaces.Box(
@@ -55,11 +56,11 @@ class SpdeEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def step(self, f, t_start, t_end, prev_condition):
+    def step(self, theta, t_start, t_end, prev_condition):
 
-        #theta = np.clip(theta, -self.theta_high, self.theta_high)
+        theta = np.clip(theta, -self.theta_high, self.theta_high)
+        f = self.function_theta(theta)
         f = np.clip(f, -self.f_max, self.f_max)
-        #f = self.function_theta(theta)
         
         u = self.burgers.convection_diffusion(t_start, t_end, self.nu, self.eps, prev_condition, f)
         self.state = u
