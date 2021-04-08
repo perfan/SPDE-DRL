@@ -13,28 +13,29 @@ from datetime import datetime
 
 NT = 2
 T_START = 0
-T_END = 0.5
+T_END = 2
 NX = 151
 XMAX = 2.0*PI
 NU = 0.01
-EPS = 0.00 #0.01
+EPS = 0.01 #0.01
 seed  = 0
 lambda1 = 0.2
-theta_2_scale = 1
+
 
 burgers = Burgers(XMAX, NX, NT)
 UMAX = 8
+F_MAX = 10
 USTAR = np.full(NX, 4.0, dtype = np.float32)
-#THETAHIGH = np.array([1, 150, 1, 1], dtype = np.float32)
-#THETASIZE = 4
-F_MAX = 5
+THETAHIGH = np.array([1, NX, F_MAX, F_MAX], dtype = np.float32)
+THETASIZE = 4
+theta_scale = [1, 75, 1, 1]
 
-env = SpdeEnv(burgers, UMAX, F_MAX, NU, EPS, USTAR, lambda1)
+env = SpdeEnv(burgers, UMAX, F_MAX, THETAHIGH, THETASIZE, NU, EPS, USTAR, lambda1)
 chkpt_dir = 'experiment_out'
 make_dir(chkpt_dir)
 
 agent = Agent(alpha=0.000025, beta=0.00025, input_dims=[NX], tau=0.1, env=env,
-              batch_size=64,  layer1_size=400, layer2_size=300, n_actions= NX, chkpt_dir=chkpt_dir)
+              batch_size=64,  layer1_size=400, layer2_size=300, n_actions= THETASIZE, chkpt_dir=chkpt_dir)
 
 np.random.seed(seed)
 
@@ -46,7 +47,7 @@ os.mkdir(log_dir_name)
 
 score_history = []
 num_episodes = 100
-episode_length = 601
+episode_length = 1201
 timeStep = (T_END-T_START)/(episode_length-1)
 for j in range(num_episodes):
     obs = env.reset()
@@ -61,24 +62,26 @@ for j in range(num_episodes):
         t_final = (i + 1) * timeStep
 
         act = agent.choose_action(obs).astype('double')
-        #act[1] *= theta_2_scale 
+        act = act * theta_scale
+        
         idx = np.argmax(obs)
         
         if i%100 == 0 :
-            plt.plot(act)
-            plt.savefig("{}/{}-act.png".format(iter_log_dir_name, i))
-            plt.close()
+          f = env.function_theta(act)
+          plt.plot(f)
+          plt.savefig("{}/{}-act.png".format(iter_log_dir_name, i))
+          plt.close()
 
-            plt.plot(obs)
-            plt.savefig("{}/{}-obs.png".format(iter_log_dir_name, i))
-            plt.close()
+          plt.plot(obs)
+          plt.savefig("{}/{}-obs.png".format(iter_log_dir_name, i))
+          plt.close()
 
         new_state, derivaties, reward, done, info = env.step(act, t_init, t_final, obs)
         
         if i%100 == 0 :
-            plt.plot(new_state)
-            plt.savefig("{}/{}-newState.png".format(iter_log_dir_name, i))
-            plt.close()
+          plt.plot(new_state)
+          plt.savefig("{}/{}-newState.png".format(iter_log_dir_name, i))
+          plt.close()
 
         agent.remember(obs, act, reward, new_state, int(done))
         agent.learn()
