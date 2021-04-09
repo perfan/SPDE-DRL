@@ -51,3 +51,45 @@ class OUActionNoise(object):
     def __repr__(self):
         return 'OrnsteinUhlenbeckActionNoise(mu={}, sigma={})'.format(
                                                             self.mu, self.sigma)
+
+
+import argparse
+import torch
+import gym
+
+# https://github.com/ShangtongZhang/DeepRL/blob/master/deep_rl/utils/config.py
+class Config:
+    # DEVICE = torch.device('cpu')
+
+    def __init__(self):
+        self.parser = argparse.ArgumentParser()
+        self.n_t = 2
+        self.t_start = 0
+        self.t_end = 2
+        self.n_x = 151
+        self.x_max = 2.0*PI
+        self.nu = 0.01
+        self.eps = 0.01 #0.01
+        self.regularizer_weight = 0.2
+        self.func_type = "linear"
+        self.u_max = 8
+        self.f_max = 10
+        self.theta_size = 4
+        self.theta_high = None
+        self.alpha = 0.000025
+        self.beta = 0.00025
+        self.batch_size=64
+        self.layer1_size=400
+        self.layer2_size=300
+        self.num_episodes = 100
+        self.episode_length = 1201  
+
+    def add_argument(self, *args, **kwargs):
+        self.parser.add_argument(*args, **kwargs)
+
+    def merge(self, config_dict=None):
+        if config_dict is None:
+            args = self.parser.parse_args()
+            config_dict = args.__dict__
+        for key in config_dict.keys():
+            setattr(self, key, config_dict[key])
