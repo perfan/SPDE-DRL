@@ -5,6 +5,7 @@ from SPDEs import Burgers
 from math import pi as PI
 
 
+
 NT = 1201
 T_START = 0
 T_END = 2
