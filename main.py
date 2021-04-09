@@ -9,17 +9,17 @@ import os
 import time
 from datetime import datetime
 
-
 config = Config()
 config.n_t = 2
 config.t_start = 0
 config.t_end = 2
 config.n_x = 151
-config.x_max = 2.0*PI
+config.x_max = 2.0 * PI
 config.nu = 0.01
 config.eps = 0.01 #0.01
 config.regularizer_weight = 0.2
 config.func_type = "piece-wise-constant"
+config.cost_type = "variance"
 config.u_max = 8
 config.f_max = 10
 
@@ -30,24 +30,25 @@ config.layer1_size=400
 config.layer2_size=300
 config.num_episodes = 100
 config.episode_length = 1201
+config.tau = 0.1
 
 seed = 0
 np.random.seed(seed)
 
-burgers = Burgers(XMAX, NX, NT)
+burgers = Burgers(config.x_max, config.n_x, config.n_t)
 
 
-if func_type == "piece-wise-constant":
+if config.func_type == "piece-wise-constant":
+    config.theta_size = 10
+    config.theta_high = np.full((config.theta_size), config.f_max, dtype = np.float32)
+    config.theta_scale = np.full((config.theta_size), 1)
+elif config.func_type == "linear-tanh":
     config.theta_high = np.array([1, config.n_x, config.f_max, config.f_max], dtype = np.float32)
-    sconfig.theta_scale = [1, 1, 1, 1]
-    config.theta_size = 4
-elif func_type == "linear-tanh":
-    config.theta_high = np.array([config.f_max, config.f_max, config.f_max, config.f_max], dtype = np.float32)
     config.theta_scale = [1, 50, 1, 1]
     config.theta_size = 4
 else:
     config.theta_high = np.full((config.n_x), config.f_max, dtype = np.float32)
-    config.theta_scale = np.ful((config.n_x), 1,  dtype = np.float32)
+    config.theta_scale = np.full((config.n_x), 1,  dtype = np.float32)
     config.theta_size = config.n_x
 
 
@@ -57,13 +58,13 @@ chkpt_dir = 'experiment_out'
 make_dir(chkpt_dir)
 
 agent = Agent(alpha= config.alpha, beta=config.beta, input_dims=[config.n_x], tau=config.tau, env=env,
-              batch_size= config.batch_size,  layer1_size=config.layer1_size, layer2_size=config.layer2_size, n_actions= self.theta_size, chkpt_dir=chkpt_dir)
+              batch_size= config.batch_size,  layer1_size=config.layer1_size, layer2_size=config.layer2_size, n_actions= config.theta_size, chkpt_dir=chkpt_dir)
 
 
 make_dir('logs')
 now = datetime.now()
 current_time = now.strftime("%H:%M:%S")
-log_dir_name = "./logs/{}".format(current_time)
+log_dir_name = "./logs/{}-{}-alpha{}-beta{}".format(current_time, config.func_type, config.alpha, config.beta)
 os.mkdir(log_dir_name)
 
 score_history = []
@@ -82,7 +83,7 @@ for j in range(config.num_episodes):
         t_final = (i + 1) * timeStep
 
         act = agent.choose_action(obs).astype('double')
-        act = act * theta_scale
+        act = act * config.theta_scale
         
         idx = np.argmax(obs)
         
@@ -93,6 +94,7 @@ for j in range(config.num_episodes):
                 f = env.tanh_linear_comp(act)
             else:
                 f = act
+            f = env.regularize_f(f)
 
             plt.plot(f)
             plt.savefig("{}/{}-act.png".format(iter_log_dir_name, i))
@@ -114,12 +116,11 @@ for j in range(config.num_episodes):
         score += reward
         obs = new_state
 
-        #env.render()
     score = score / config.episode_length
     score_history.append(score)
 
     print('episode ', j, 'score %.2f' % score,
           'trailing 100 games avg %.3f' % np.mean(score_history[-100:]))
 
-filename = '{}-alpha{}-beta{}.png'.format(config.func_type, config.alpha, config.beta)
+filename = '{}/returns.png'.format(log_dir_name)
 plotLearning(score_history, filename, window=100)
