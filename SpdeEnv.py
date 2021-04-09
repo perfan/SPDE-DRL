@@ -5,7 +5,6 @@ import numpy as np
 from os import path
 import utils
 
-
 class SpdeEnv(gym.Env):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
@@ -66,7 +65,7 @@ class SpdeEnv(gym.Env):
         config = self.config
         if config.func_type == "piece-wise-constant":
             f = self.piece_wise_constant(theta)
-        elif config..func_type == "linear-tanh":
+        elif config.func_type == "linear-tanh":
             f = self.tanh_linear_comp(theta)
         elif config.func_type == "linear":
             f = theta
@@ -75,20 +74,24 @@ class SpdeEnv(gym.Env):
         
         u = self.burgers.convection_diffusion(t_start, t_end, config.nu, config.eps, prev_condition, f)
         self.state = u
-        # costs = np.sum((u[:, -1] - self.u_star)**2)
-        # costs = np.sum((u[:, -1] - self.u_star)**2)
+
+        if config.cost_type == "ustar_divergance":
+            costs = np.sum((u[:, -1] - self.u_star)**2)
+        elif config.cost_type == "variance":
+            u_avg  = np.average(u[:,-1])
+            costs = np.average((u[:, -1] -  u_avg)**2)
+        elif config.cost_type == "max-min":
+            costs = np.max(u[:,-1]) - np.min(u[:,-1])
+        
         du = utils.differentiate(u[:,-1], config.x_max, config.n_x)
         
         regularizer = config.regularizer_weight * np.average((f[1:] - f[:-1])**2)
-        u_avg  = np.average(u[:,-1])
-        costs = np.average((u[:, -1] -  u_avg)**2)
-        # costs += regularizer
-        # costs = np.max(u[:,-1]) - np.min(u[:,-1])
+        costs += regularizer
 
         return self.state[:, -1], du, -costs, False, {}
 
     def reset(self):
         self.state = self.burgers.u 
-        self.state[:, 0] = self.burgers.InitialCondition(config.nu) 
+        self.state[:, 0] = self.burgers.InitialCondition(self.config.nu) 
         self.last_u = None
         return self.state[:, 0]
