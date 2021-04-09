@@ -1,6 +1,7 @@
 import os
 import matplotlib.pyplot as plt 
 import numpy as np
+from math import pi as PI
 
 
 def differentiate(u, XMAX, NX):
@@ -72,6 +73,7 @@ class Config:
         self.eps = 0.01 #0.01
         self.regularizer_weight = 0.2
         self.func_type = "linear"
+        self.cost_type = "variance"
         self.u_max = 8
         self.f_max = 10
         self.theta_size = 4
@@ -83,6 +85,7 @@ class Config:
         self.layer2_size=300
         self.num_episodes = 100
         self.episode_length = 1201  
+        self.tau = 0.1
 
     def add_argument(self, *args, **kwargs):
         self.parser.add_argument(*args, **kwargs)
