@@ -135,11 +135,14 @@ for f_t, t_s in zip(FUNC_TYPE, THETA_SIZE):
         print('episode ', j, 'score %.2f' % score,
               'trailing 100 games avg %.3f' % np.mean(score_history[-100:]))
 
+        with open("{}/best_iterations.txt".format(log_dir_name), 'a') as f:
+          f.write("{}\n".format(best_iteration))    
+
     filename = '{}/returns.png'.format(log_dir_name)
     plotLearning(score_history, filename, window=100)
 
     filename = '{}/best_scores.png'.format(log_dir_name)
-    plotLearning(best_score_history, filename, window=100)
+    plotLearning(best_score_history, filename, window=100, col='orange')
 
-    filename = '{}/best_iteration.png'.format(log_dir_name)
-    plotLearning(best_iteration_history, filename, window=100)
+
+

@@ -15,7 +15,7 @@ def differentiate(u, XMAX, NX):
 
     return du
 
-def plotLearning(scores, filename, x=None, window=5):   
+def plotLearning(scores, filename, x=None, window=5, col='blue'):   
     N = len(scores)
     running_avg = np.empty(N)
     for t in range(N):
@@ -24,8 +24,9 @@ def plotLearning(scores, filename, x=None, window=5):
         x = [i for i in range(N)]
     plt.ylabel('Score')       
     plt.xlabel('Game')                     
-    plt.plot(x, running_avg)
+    plt.plot(x, running_avg, color=col)
     plt.savefig(filename)
+    plt.close()
 
 def make_dir(path):
   try: os.mkdir(path)
